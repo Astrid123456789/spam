@@ -187,3 +187,18 @@ This setup provided consistently strong performance across both the SMS and emai
 * **Combined training** provides a practical compromise: slightly lower accuracy but much better generalization across domains.
 * **Precision–recall trade-offs** vary significantly by domain, reflecting differences in message structure and vocabulary.
 * **CountVectorizer with unigrams and Logistic Regression** proved to be an effective, interpretable, and efficient baseline for spam detection.
+
+---
+
+## Optimal Preprocessing Configuration
+
+To be determined in the upcoming pipeline phase, where multiple preprocessing strategies (e.g., TF-IDF, n-grams, lemmatization) will be evaluated and compared.  
+The current notebook used a fixed configuration (lowercasing, digit replacement with `<NUM>`, stopword removal, and `CountVectorizer` with unigrams) as a consistent baseline.
+
+---
+
+## Practical Deployment Recommendations
+
+Deployment considerations will be developed in the pipeline stage.  
+These will include model persistence (saving/loading), integration into an application for real-time spam detection, and strategies to handle new or unseen domains.  
+At this stage, the focus is limited to experimental evaluation and performance comparison.
