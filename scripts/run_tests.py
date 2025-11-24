@@ -521,7 +521,7 @@ class TestRunner:
         try:
             # Test basic imports
             from pipeline import DataProcessor
-            from utils.config import TARGET_COL, CITY_COL
+            from utils.config import TARGET_COL, TEXT_COL
             
             # Test basic instantiation
             processor = DataProcessor()
