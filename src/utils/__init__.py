@@ -2,7 +2,7 @@
 Configuration for Spam ML Pipeline.
 
 This module contains all configuration constants used throughout
-the pipeline. Students don't need to modify this file.
+the pipeline. 
 """
 
 from pathlib import Path
@@ -25,13 +25,9 @@ SMS_TRAIN_FILE = "sms_spam.csv"
 EMAIL_TRAIN_FILE = "email_spam.csv"
 
 # Column names
-# Classic spam datasets use these names; this matches your notebook:
-ID_COL = "id"              # Optional – only if your CSVs have an ID column
 TEXT_COL = "message"       # The raw text of the message (SMS or email)
 TARGET_COL = "label"       # 0 = ham, 1 = spam (usually)
 
-# If you later add a combined dataset you might also want:
-SOURCE_COL = "source"      # e.g. "sms" or "email" (optional)
 
 # =============================================================================
 # PREPROCESSING CONFIGURATION
@@ -50,9 +46,9 @@ TRAIN_TEST_SPLIT_SIZE = 0.2
 # FEATURE ENGINEERING / TEXT CONFIGURATION
 # =============================================================================
 
-# Vectorization options – you can use these in your pipeline if you want
+# Vectorization options 
 USE_TFIDF = True           # True: TfidfVectorizer, False: CountVectorizer
-MAX_FEATURES = 10000       # Max vocabulary size (optional)
+MAX_FEATURES = 5000       # Max vocabulary size (optional)
 
 # Language / text-cleaning options (optional but handy)
 STOPWORDS_LANGUAGE = "english"
@@ -61,8 +57,9 @@ STOPWORDS_LANGUAGE = "english"
 # MODEL CONFIGURATION
 # =============================================================================
 
-# Available model types (example – adapt to what you actually implement)
-MODEL_TYPES = ["logistic_regression"]
+# Available model types 
+MODEL_TYPES = ["logistic_regression", "multinomial_nb", "bernoulli_nb", "linear_svc"]
+
 
 # Default hyperparameter grids for optimization
 DEFAULT_PARAM_GRIDS = {
@@ -70,10 +67,24 @@ DEFAULT_PARAM_GRIDS = {
         "C": [0.1, 1.0, 10.0],
         "max_iter": [100, 300, 1000]
     },
-    # You can add others later, e.g.:
-    # "naive_bayes": {...},
-    # "xgboost": {...},
+
+    "multinomial_nb": {
+        "alpha": [0.1, 0.5, 1.0],         # Smoothing parameter
+        "fit_prior": [True, False]
+    },
+
+    "bernoulli_nb": {
+        "alpha": [0.1, 0.5, 1.0],
+        "binarize": [0.0, 0.1, 0.2],      # Threshold for binarizing TF-IDF values
+        "fit_prior": [True, False]
+    },
+
+    "linear_svc": {
+        "C": [0.1, 1.0, 10.0],
+        "max_iter": [1000, 2000, 5000]
+    }
 }
+
 
 # Random state for reproducibility
 RANDOM_STATE = 3  # matches the notebook
@@ -91,7 +102,7 @@ MLFLOW_TRACKING_URI = "./mlruns"
 
 # Metrics to calculate for classification instead of regression
 # Make sure your evaluator uses these names.
-METRICS = ["accuracy", "precision", "recall", "f1"]
+METRICS = ["accuracy", "precision", "recall"]
 
 def get_data_file_path(filename):
     """Get full path to a data file."""
