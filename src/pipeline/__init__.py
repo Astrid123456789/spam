@@ -1,5 +1,5 @@
 """
-Air Quality ML Pipeline Package
+Spam ML Pipeline Package
 
 This package contains the core machine learning pipeline components:
 - DataProcessor: Data loading and preprocessing
