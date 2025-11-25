@@ -24,7 +24,7 @@ __version__ = "2.0.0"
 __author__ = "Spam ML Workshop - Restructured"
 
 # Import main pipeline classes for backward compatibility
-from pipeline import DataProcessor, FeatureEngineer, ModelTrainer, Evaluator
+from .pipeline import DataProcessor, FeatureEngineer, ModelTrainer, Evaluator
 
 __all__ = [
     'DataProcessor',
