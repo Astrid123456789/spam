@@ -1,8 +1,7 @@
 """
 Configuration for Spam ML Pipeline.
 
-This module contains all configuration constants used throughout
-the pipeline. 
+This module contains all configuration constants used throughout the pipeline.
 """
 
 from pathlib import Path
@@ -11,99 +10,75 @@ from pathlib import Path
 # PROJECT PATHS
 # =============================================================================
 
-# Base project directory (automatically detected)
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 DATA_PATH = PROJECT_ROOT / "data"
+
+# File names (according to spam.ipynb)
+SMS_FILE = "sms_spam.csv"
+EMAIL_FILE = "email_spam.csv"
 
 # =============================================================================
 # DATA CONFIGURATION
 # =============================================================================
 
-# File names
-# If you end up creating a combined dataset, you can add COMBINED_FILE later.
-SMS_TRAIN_FILE = "sms_spam.csv"
-EMAIL_TRAIN_FILE = "email_spam.csv"
-
 # Column names
-TEXT_COL = "message"       # The raw text of the message (SMS or email)
-TARGET_COL = "label"       # 0 = ham, 1 = spam (usually)
-
+TARGET_COL = "label"       # Target column ('ham'/'spam')
+MESSAGE_COL = "message"    # Text column
+POSITIVE_CLASS_LABEL = "spam" # Positive class label
 
 # =============================================================================
 # PREPROCESSING CONFIGURATION
 # =============================================================================
 
-# Missing data threshold (drop columns with more than X% missing)
-MISSING_THRESHOLD = 0.7
-
-# Cross-validation splits
-N_SPLITS = 4
-
-# Train/test split used in the notebook
+# Train/Test split size
 TRAIN_TEST_SPLIT_SIZE = 0.2
 
 # =============================================================================
-# FEATURE ENGINEERING / TEXT CONFIGURATION
+# FEATURE ENGINEERING CONFIGURATION (NLP) / TEXT PREPROCESSING
 # =============================================================================
 
-# Vectorization options 
-USE_TFIDF = True           # True: TfidfVectorizer, False: CountVectorizer
-MAX_FEATURES = 5000       # Max vocabulary size (optional)
-
-# Language / text-cleaning options (optional but handy)
-STOPWORDS_LANGUAGE = "english"
+# Vectorizer type: 'TfidfVectorizer' or 'CountVectorizer'
+VECTORIZER_TYPE = "TfidfVectorizer"
+MAX_FEATURES = 5000 # Maximum number of features (words)
 
 # =============================================================================
 # MODEL CONFIGURATION
 # =============================================================================
 
-# Available model types 
-MODEL_TYPES = ["logistic_regression", "multinomial_nb", "bernoulli_nb", "linear_svc"]
+# Available model types (Classification)
+MODEL_TYPES = ["logistic_regression", "naive_bayes", "bernoulli_nb", "linear_svc"] 
+MODEL_TYPE_NAMES = {
+    "logistic_regression": "LogisticRegression",
+    "naive_bayes": "MultinomialNB",
+    "bernoulli_nb": "BernoulliNB",
+    "linear_svc": "LinearSVC"
+}
 
-
-# Default hyperparameter grids for optimization
+# Default hyperparameters for optimization
 DEFAULT_PARAM_GRIDS = {
     "logistic_regression": {
-        "C": [0.1, 1.0, 10.0],
-        "max_iter": [100, 300, 1000]
+        'C': [0.1, 1.0, 10.0],
+        'solver': ['liblinear'] # Good choice for sparse data
     },
-
-    "multinomial_nb": {
-        "alpha": [0.1, 0.5, 1.0],         # Smoothing parameter
-        "fit_prior": [True, False]
+    "naive_bayes": {
+        'alpha': [0.01, 0.1, 1.0] # Smoothing parameter
     },
-
     "bernoulli_nb": {
-        "alpha": [0.1, 0.5, 1.0],
-        "binarize": [0.0, 0.1, 0.2],      # Threshold for binarizing TF-IDF values
-        "fit_prior": [True, False]
+        'alpha': [0.01, 0.1, 1.0] # Smoothing parameter
     },
-
     "linear_svc": {
-        "C": [0.1, 1.0, 10.0],
-        "max_iter": [1000, 2000, 5000]
+        'C': [0.1, 1.0, 10.0]
     }
 }
 
+# Number of iterations for logistic regression (from spam.ipynb)
+NB_ITERATIONS = 1000
 
 # Random state for reproducibility
-RANDOM_STATE = 3  # matches the notebook
+RANDOM_STATE = 3
 
 # =============================================================================
 # MLFLOW CONFIGURATION
 # =============================================================================
-
 MLFLOW_EXPERIMENT_NAME = "spam_detection_ml"
 MLFLOW_TRACKING_URI = "./mlruns"
-
-# =============================================================================
-# EVALUATION CONFIGURATION
-# =============================================================================
-
-# Metrics to calculate for classification instead of regression
-# Make sure your evaluator uses these names.
-METRICS = ["accuracy", "precision", "recall"]
-
-def get_data_file_path(filename):
-    """Get full path to a data file."""
-    return DATA_PATH / filename
