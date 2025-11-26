@@ -1,150 +1,108 @@
-import re
+"""
+Feature engineering/Text preprocessing module for the Spam Detection pipeline.
+
+This module handles text preprocessing and feature extraction (vectorization).
+"""
+
 import pandas as pd
 import numpy as np
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from ..utils.logger import get_logger
+import re
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
-class TextPreprocessor:
+from utils.config import TARGET_COL, MESSAGE_COL, VECTORIZER_TYPE, MAX_FEATURES
+from utils.logger import get_logger, LogLevel
+
+
+class FeatureEngineer:
     """
-    Handles text preprocessing, vectorization, and data balancing for spam detection.
+    Feature engineer for spam detection.
+    
+    Handles text cleaning and vectorization (BoW/TF-IDF).
     """
     
-    def __init__(self, use_tfidf=False, max_features=5000, token_pattern=r"(<NUM>|[a-z]+|[!?]+|[^\w\s])"):
+    def __init__(self):
+        """Initialize the feature engineer."""
+        self.vectorizer = None
+        self.selected_features = None
+    
+    @staticmethod
+    def preprocess_message(message):
         """
-        Initialize the TextPreprocessor.
+        Clean a text message: lowercase and replace numbers.
         
         Args:
-            use_tfidf (bool): If True, use TfidfVectorizer; otherwise use CountVectorizer.
-            max_features (int): Maximum number of features to extract.
-            token_pattern (str): Regex pattern for tokenization.
-        """
-        self.logger = get_logger()
-        self.use_tfidf = use_tfidf
-        self.max_features = max_features
-        self.token_pattern = token_pattern
-        
-        # Initialize vectorizer
-        VectorizerClass = TfidfVectorizer if use_tfidf else CountVectorizer
-        self.vectorizer = VectorizerClass(
-            max_features=max_features,
-            token_pattern=token_pattern,
-            lowercase=True,
-            stop_words='english',
-            preprocessor=self.preprocess_text
-        )
-        
-    def preprocess_text(self, message):
-        """
-        Preprocess a text message by replacing numeric sequences with a generic placeholder
-        and converting text to lowercase.
-        
-        Args:
-            message (str): The raw text message.
+            message (str): The original text message.
             
         Returns:
-            str: The processed message.
+            str: The preprocessed message.
         """
-        if not isinstance(message, str):
-            return str(message)
-            
+        # Lowercasing
         message = message.lower()
-        # Replace numbers with <NUM>
+        
+        # Replace numbers with a unique token '<NUM>' (according to spam.ipynb)
         message = re.sub(r'\d+', '<NUM>', message)
-        # Normalize whitespace
+        
+        # Normalize whitespace and remove leading/trailing spaces
         message = re.sub(r'\s+', ' ', message).strip()
+        
         return message
 
-    def fit(self, X, y=None):
+    def fit_vectorizer(self, train_messages):
         """
-        Fit the vectorizer on the training data.
+        Fit the vectorizer (Count or TF-IDF) to the training messages.
         
         Args:
-            X (iterable): Training text data.
-            y (iterable, optional): Target labels (unused for vectorizer fitting).
-            
-        Returns:
-            self
+            train_messages (pd.Series): The training messages.
         """
-        self.logger.info("Fitting vectorizer...")
-        self.vectorizer.fit(X)
-        self.logger.success(f"Vectorizer fitted with {len(self.vectorizer.get_feature_names_out())} features")
-        return self
+        logger = get_logger()
+        logger.substep(f"Fitting {VECTORIZER_TYPE} on training data")
+        
+        # Choose the vectorizer
+        if VECTORIZER_TYPE == "CountVectorizer":
+            VectorizerClass = CountVectorizer
+        elif VECTORIZER_TYPE == "TfidfVectorizer":
+            VectorizerClass = TfidfVectorizer
+        else:
+            raise ValueError(f"Unknown vectorizer type: {VECTORIZER_TYPE}")
+        
+        self.vectorizer = VectorizerClass(
+            preprocessor=self.preprocess_message,
+            max_features=MAX_FEATURES
+            # We could add stop_words='english' if needed
+        )
+        
+        # Fit the vectorizer
+        self.vectorizer.fit(train_messages)
+        self.selected_features = self.vectorizer.get_feature_names_out()
+        
+        logger.info(f"Vocabulary size: {len(self.selected_features)}")
+        logger.success("Vectorizer fit completed")
+        
 
-    def transform(self, X):
+    def transform_messages(self, messages):
         """
-        Transform the data using the fitted vectorizer.
+        Transform a series of messages into a numerical feature matrix.
         
         Args:
-            X (iterable): Text data to transform.
+            messages (pd.Series): The messages to transform.
             
         Returns:
-            scipy.sparse.csr_matrix: Transformed feature matrix.
+            np.array: The feature matrix (sparse matrix).
         """
-        self.logger.info("Transforming data...")
-        return self.vectorizer.transform(X)
+        if self.vectorizer is None:
+            raise RuntimeError("Vectorizer must be fitted first. Call fit_vectorizer()")
+            
+        logger = get_logger()
+        logger.substep("Transforming messages to feature matrix")
+        
+        X = self.vectorizer.transform(messages)
+        
+        logger.info(f"Feature matrix shape: {X.shape}")
+        logger.success("Transformation completed")
+        
+        return X
 
-    def fit_transform(self, X, y=None):
-        """
-        Fit and transform the data in one step.
-        
-        Args:
-            X (iterable): Training text data.
-            y (iterable, optional): Target labels.
-            
-        Returns:
-            scipy.sparse.csr_matrix: Transformed feature matrix.
-        """
-        return self.fit(X, y).transform(X)
-        
-    def balance_data(self, messages, labels, random_state=42):
-        """
-        Balance training data by oversampling the minority class.
-        
-        Args:
-            messages (pd.Series): Text messages.
-            labels (pd.Series): Class labels.
-            random_state (int): Random seed for reproducibility.
-            
-        Returns:
-            tuple: (balanced_messages, balanced_labels)
-        """
-        self.logger.info("Checking class balance...")
-        
-        # Ensure inputs are pandas Series for easier handling
-        if not isinstance(messages, pd.Series):
-            messages = pd.Series(messages, name="message")
-        if not isinstance(labels, pd.Series):
-            labels = pd.Series(labels, name="label")
-            
-        counts = labels.value_counts()
-        self.logger.info(f"Original counts:\n{counts}")
-        
-        if len(counts) < 2:
-            self.logger.warning("Only one class present, cannot balance.")
-            return messages, labels
-            
-        majority_class = counts.idxmax()
-        minority_class = counts.idxmin()
-        
-        if counts[majority_class] == counts[minority_class]:
-            self.logger.info("Classes are already balanced.")
-            return messages, labels
-            
-        diff = counts[majority_class] - counts[minority_class]
-        self.logger.info(f"Balancing data: Oversampling class {minority_class} by {diff} samples")
-        
-        # Create a DataFrame to keep messages and labels together during sampling
-        df = pd.concat([messages, labels], axis=1)
-        minority_df = df[df[labels.name] == minority_class]
-        
-        # Oversample
-        oversampled_minority = minority_df.sample(n=diff, replace=True, random_state=random_state)
-        balanced_df = pd.concat([df, oversampled_minority])
-        
-        # Shuffle the result
-        balanced_df = balanced_df.sample(frac=1, random_state=random_state).reset_index(drop=True)
-        
-        new_counts = balanced_df[labels.name].value_counts()
-        self.logger.success(f"Balanced counts:\n{new_counts}")
-        
-        return balanced_df[messages.name], balanced_df[labels.name]
+    def fit_transform(self, train_messages):
+        """Combine fit and transform for training data."""
+        self.fit_vectorizer(train_messages)
+        return self.transform_messages(train_messages)
