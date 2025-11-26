@@ -389,6 +389,7 @@ class TestRunner:
             bool: True if tests passed, False otherwise
         """
         try:
+            # Note: This block assumes the test modules contain a run_*_tests function
             if module_name == "data_processor":
                 from tests.test_data_processor import run_dataprocessor_tests
                 return run_dataprocessor_tests()
@@ -519,9 +520,9 @@ class TestRunner:
         self.print_step("Running quick validation...")
         
         try:
-            # Test basic imports
+            # Test basic imports (adapt these to your project structure)
             from pipeline import DataProcessor
-            from utils.config import TARGET_COL, TEXT_COL
+            from utils.config import TARGET_COL
             
             # Test basic instantiation
             processor = DataProcessor()
@@ -682,12 +683,12 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python scripts/run_tests.py                    # Run all tests with proof
-  python scripts/run_tests.py --verbose          # Verbose output
-  python scripts/run_tests.py -m data_processor  # Specific module
-  python scripts/run_tests.py --coverage         # With coverage report
-  python scripts/run_tests.py --quick            # Quick validation
-  python scripts/run_tests.py --no-proof         # Skip proof generation
+  python scripts/run_tests.py                 # Run all tests with proof
+  python scripts/run_tests.py --verbose       # Verbose output
+  python scripts/run_tests.py -m data_processor # Specific module
+  python scripts/run_tests.py --coverage      # With coverage report
+  python scripts/run_tests.py --quick         # Quick validation
+  python scripts/run_tests.py --no-proof      # Skip proof generation
         """
     )
     
