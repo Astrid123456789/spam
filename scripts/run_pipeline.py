@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Simple Spam Detection ML Pipeline with Inline MLflow Integration
 
@@ -248,4 +249,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
