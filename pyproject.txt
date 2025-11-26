@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools~=80.9.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+---
+
+[project]
+name = "spam_detection"
+version = "1.0.3"
+description = "Machine Learning Pipeline for SMS and Email Spam Classification"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    {name = "Spam Detection ML Workshop", email = "workshop@example.com"},
+]
+
+dependencies = [
+    # Core Data Handling & Scientific Computing
+    "pandas~=2.3.1",
+    "numpy~=2.3.1",
+    
+    # Machine Learning & Text Classification Models (Logistic Regression, Naive Bayes, SVC)
+    "scikit-learn~=1.7.0",
+    
+    # Text Processing (Needed for advanced tokenization/cleaning if not just using sklearn's built-in)
+    # Adding NLTK/spacy is often required for robust text cleaning, but we'll stick to core needed libraries.
+    
+    # Visualization and Utility
+    "matplotlib~=3.10.3",
+    "seaborn~=0.13.2",
+    "joblib~=1.5.1",
+    "tqdm~=4.66.4", # Often useful for showing progress bars
+]
+
+---
+
+[dependency-groups]
+# Development and Testing Tools
+dev = [
+    "ipykernel~=6.29.5",
+    "jupyter~=1.1.1",
+    "pytest~=8.4.1",
+    "pytest-cov>=7.0.0",
+    "pytest-mock>=3.15.1",
+]
+
+# Advanced ML/NLP Dependencies (Optional, based on workshop scope)
+advanced = [
+    "nltk~=3.8.1", # For advanced text cleaning (stop words, stemming)
+    "scipy~=1.14.0", # For sparse matrix handling, implicitly needed by scikit-learn but explicit is safer
+]
+
+# MLflow Tracking
+mlflow = [
+    "mlflow~=2.13.1",
+]
+
+---
+
+[tool.setuptools.packages.find]
+# Ensure setuptools finds packages within the 'src' directory
+where = ["src"]
+
+[tool.uv]
+# Tool configuration (e.g., for uv, which is often used instead of pip/venv)
+default-groups = ["advanced", "mlflow"] # Optionally install advanced dependencies by default
