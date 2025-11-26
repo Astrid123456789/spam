@@ -1,79 +1,86 @@
-import pytest
+"""
+Technical validation tests for the TextPreprocessor class (Spam Detection).
+
+These tests validate the text cleaning and vectorization functionality (TF-IDF/CountVectorizer).
+"""
+
 import pandas as pd
 import numpy as np
-from src.pipeline.feature_engineer import FeatureEngineer
+import pytest
+from scipy.sparse import issparse, csr_matrix 
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
-class TestFeatureEngineer:
+from pipeline.text_preprocessor import TextPreprocessor
+from utils.config import TARGET_COL, MESSAGE_COL, VECTORIZER_TYPE
+
+class TestTextPreprocessor:
+    """Series of tests for the technical validation of TextPreprocessor (NLP)."""
     
-    @pytest.fixture
-    def feature_engineer(self):
-        return FeatureEngineer(max_features=100)
-    
-    def test_initialization(self, feature_engineer):
-        assert feature_engineer.max_features == 100
-        assert feature_engineer.use_tfidf is False
-        assert feature_engineer.vectorizer is not None
+    def test_preprocess_message_lowercase(self):
+        """Test the conversion to lowercase."""
+        engineer = TextPreprocessor()
+        message = "This is A Test Message With UPPERCASE Letters."
+        expected = "this is a test message with uppercase letters."
+        assert engineer.preprocess_message(message) == expected
         
-    def test_preprocess_text(self, feature_engineer):
-        # Test basic lowercasing
-        assert feature_engineer.preprocess_text("HELLO") == "hello"
+    def test_preprocess_message_numbers_replacement(self):
+        """Test the replacement of numbers with a <NUM> token."""
+        engineer = TextPreprocessor()
+        message = "I received 123 SMS and 45 emails in 2024."
+        expected = "i received <NUM> sms and <NUM> emails in <NUM>."
+        assert engineer.preprocess_message(message) == expected
         
-        # Test number replacement
-        assert feature_engineer.preprocess_text("Call 123 now") == "call <NUM> now"
-        assert feature_engineer.preprocess_text("0123456789") == "<NUM>"
-        
-        # Test whitespace normalization
-        assert feature_engineer.preprocess_text("  hello   world  ") == "hello world"
-        
-        # Test combined
-        assert feature_engineer.preprocess_text("WINNER!! Call 0900 123") == "winner!! call <NUM> <NUM>"
-        
-        # Test non-string input
-        assert feature_engineer.preprocess_text(123) == "123"
+    def test_preprocess_message_whitespace_handling(self):
+        """Test the handling of multiple whitespace characters."""
+        engineer = TextPreprocessor()
+        message = "  message   with\tmultiple\nwhitespaces. "
+        expected = "message with multiple whitespaces."
+        assert engineer.preprocess_message(message) == expected
 
-    def test_fit_transform(self, feature_engineer):
-        train_texts = [
-            "Hello world",
-            "Hello python",
-            "Spam message <NUM>",
-            "Another spam <NUM>"
-        ]
+    def test_fit_vectorizer(self, sample_text_data):
+        """Test the fitting of the vectorizer."""
+        engineer = TextPreprocessor()
+        _, messages, _ = sample_text_data
         
-        # Test fit
-        feature_engineer.fit(train_texts)
-        vocab = feature_engineer.vectorizer.get_feature_names_out()
-        assert "hello" in vocab
-        assert "num" in vocab  # <NUM> becomes num or <num> depending on token pattern handling
+        engineer.fit_vectorizer(messages)
         
-        # Test transform
-        matrix = feature_engineer.transform(train_texts)
-        assert matrix.shape[0] == 4
-        assert matrix.shape[1] <= 100
+        # The vectorizer should be an instance of TfidfVectorizer or CountVectorizer
+        assert engineer.vectorizer is not None
+        assert isinstance(engineer.vectorizer, (TfidfVectorizer, CountVectorizer))
         
-        # Test fit_transform
-        matrix2 = feature_engineer.fit_transform(train_texts)
-        assert matrix2.shape == matrix.shape
-
-    def test_balance_data(self, feature_engineer):
-        # Create imbalanced data: 3 'ham' vs 1 'spam'
-        messages = pd.Series(["ham1", "ham2", "ham3", "spam1"], name="message")
-        labels = pd.Series([0, 0, 0, 1], name="label")
+        # The vocabulary should have been created
+        vocab = engineer.vectorizer.vocabulary_
+        assert len(vocab) > 0, "The vocabulary should not be empty"
         
-        balanced_msgs, balanced_lbls = feature_engineer.balance_data(messages, labels)
+        # The preprocessed words should be in the vocabulary
+        assert 'euros' in vocab
+        assert '<num>' in vocab # The token for number replacement
+        assert 'great' in vocab
         
-        # Check if counts are equal
-        counts = balanced_lbls.value_counts()
-        assert counts[0] == counts[1]
-        assert counts[0] == 3  # Should match majority class size
+    def test_transform_messages(self, sample_text_data):
+        """Test the transformation (transform) of messages into feature matrix."""
+        engineer = TextPreprocessor()
+        _, messages, _ = sample_text_data
         
-        # Check if total size is correct (3 + 3 = 6)
-        assert len(balanced_lbls) == 6
+        # 1. Fit the vectorizer
+        engineer.fit_vectorizer(messages)
         
-    def test_balance_data_already_balanced(self, feature_engineer):
-        messages = pd.Series(["ham1", "spam1"], name="message")
-        labels = pd.Series([0, 1], name="label")
+        # 2. Transform the messages
+        X_features = engineer.transform_messages(messages)
         
-        balanced_msgs, balanced_lbls = feature_engineer.balance_data(messages, labels)
+        # Should return a sparse matrix
+        assert issparse(X_features), "The output should be a sparse matrix"
         
-        assert len(balanced_lbls) == 2
-        assert balanced_lbls.value_counts()[0] == 1
+        # Check the shape (Number of samples x Number of features)
+        n_samples = len(messages)
+        n_features = len(engineer.selected_features)
+        
+        assert X_features.shape == (n_samples, n_features), "The shape of the feature matrix is incorrect"
+        
+    def test_transform_before_fit_raises_error(self, sample_text_data):
+        """Test that transforming without fitting raises an error."""
+        engineer = TextPreprocessor()
+        _, messages, _ = sample_text_data
+        
+        with pytest.raises(RuntimeError, match="Vectorizer must be fitted first"):
+            engineer.transform_messages(messages)
