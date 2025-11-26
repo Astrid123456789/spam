@@ -1,27 +1,22 @@
 """
-Spam ML Pipeline Package
+Core ML Pipeline Components for Spam Detection.
 
-This package contains the core machine learning pipeline components:
-- DataProcessor: Data loading and preprocessing
-- FeatureEngineer: Feature extraction and selection
-- ModelTrainer: Model training and comparison
-- Evaluator: Core model evaluation
-
-Usage:
-    from pipeline import DataProcessor, FeatureEngineer, ModelTrainer, Evaluator
+This package contains the essential components for the machine learning workflow:
+- DataProcessor: Handles data loading and splitting.
+- TextPreprocessor: Handles text preprocessing and vectorization.
+- ModelTrainer: Handles model training, comparison, and persistence.
+- Evaluator: Handles core metric calculation and hyperparameter optimization.
 """
 
-__version__ = "1.0.0"
-
-# Import main classes for easy access
+# Importation des classes principales pour un accès facile
 from .data_processor import DataProcessor
-from .feature_engineer import FeatureEngineer
+from .feature_engineer import TextPreprocessor
 from .model_trainer import ModelTrainer
 from .evaluator import Evaluator
 
 __all__ = [
     'DataProcessor',
-    'FeatureEngineer', 
+    'TextPreprocessor',
     'ModelTrainer',
     'Evaluator'
 ]
