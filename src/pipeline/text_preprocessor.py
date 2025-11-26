@@ -4,14 +4,14 @@ import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from ..utils.logger import get_logger
 
-class FeatureEngineer:
+class TextPreprocessor:
     """
     Handles text preprocessing, vectorization, and data balancing for spam detection.
     """
     
     def __init__(self, use_tfidf=False, max_features=5000, token_pattern=r"(<NUM>|[a-z]+|[!?]+|[^\w\s])"):
         """
-        Initialize the FeatureEngineer.
+        Initialize the TextPreprocessor.
         
         Args:
             use_tfidf (bool): If True, use TfidfVectorizer; otherwise use CountVectorizer.
