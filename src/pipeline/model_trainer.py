@@ -8,7 +8,8 @@ import pandas as pd
 import numpy as np
 import joblib
 from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import MultinomialNB, BernoulliNB
+from sklearn.svm import LinearSVC
 
 # Import tracing and configuration tools
 from utils.config import MODEL_TYPES, RANDOM_STATE, TARGET_COL, NB_ITERATIONS
@@ -57,7 +58,7 @@ class ModelTrainer:
         model_type = model_type.lower()
         
         if model_type == 'logistic_regression':
-            # Use LogisticRegression with max_iter as per the notebook
+            # Use LogisticRegression with max_iter
             model = LogisticRegression(
                 random_state=RANDOM_STATE, 
                 max_iter=NB_ITERATIONS,
@@ -65,8 +66,19 @@ class ModelTrainer:
                 **params
             )
         elif model_type == 'naive_bayes':
-            # MultinomialNB is suitable for word count features (BoW/TF-IDF)
+            # MultinomialNB is suitable for count/TF-IDF features
             model = MultinomialNB(**params)
+        elif model_type == 'bernoulli_nb':
+            # BernoulliNB is suitable for binary features (word presence/absence)
+            model = BernoulliNB(**params)
+        elif model_type == 'linear_svc':
+            # LinearSVC is a powerful linear classifier.
+            model = LinearSVC(
+                random_state=RANDOM_STATE,
+                max_iter=NB_ITERATIONS,
+                dual=False, 
+                **params
+            )
         else:
             raise ValueError(f"Unknown model type: {model_type}. Available: {MODEL_TYPES}")
             
@@ -89,6 +101,17 @@ class ModelTrainer:
         logger.substep(f"Starting training for {model_type.title()} model")
 
         # TODO: Log with MLflow if necessary (to adapt from Workshop 4)
+        if mlflow and MLFLOW_AVAILABLE:
+            if mlflow.active_run() is None:
+                mlflow.start_run(run_name=f"{model_type}_training")
+            
+            # Log parameters
+            mlflow.log_params({
+                "model_type": model_type,
+                "n_features": X.shape[1],
+                "n_samples": X.shape[0],
+                **model_params
+            })
 
         # Create the model
         model = self.create_model(model_type, **model_params)
@@ -104,7 +127,7 @@ class ModelTrainer:
 
         # Logging
         with logger.indent():
-            logger.model_info(f"Training Accuracy score: {train_score:.4f}")
+            logger.model_info(f"Training Accuracy score: {train_score:.4f}") 
         
         logger.success(f"{model_type.title()} model training completed")
 
