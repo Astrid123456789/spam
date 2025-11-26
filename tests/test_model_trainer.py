@@ -9,9 +9,9 @@ import numpy as np
 import pytest
 from scipy.sparse import csr_matrix # For NLP feature matrices
 
-# Classification Models
 from sklearn.linear_model import LogisticRegression 
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import MultinomialNB, BernoulliNB
+from sklearn.svm import LinearSVC
 
 from pipeline.model_trainer import ModelTrainer
 from utils.config import MODEL_TYPES
@@ -47,21 +47,35 @@ class TestModelTrainer:
         assert isinstance(model, LogisticRegression)
     
     def test_create_model_naive_bayes(self):
-        """Test the creation of the Naive Bayes model."""
+        """Test the creation of the Multinomial Naive Bayes model."""
         trainer = ModelTrainer()
         model = trainer.create_model('naive_bayes')
         assert isinstance(model, MultinomialNB)
+        
+    def test_create_model_bernoulli_nb(self):
+        """Test the creation of the Bernoulli Naive Bayes model. (New)"""
+        trainer = ModelTrainer()
+        model = trainer.create_model('bernoulli_nb')
+        assert isinstance(model, BernoulliNB)
+        
+    def test_create_model_linear_svc(self):
+        """Test the creation of the Linear SVC model. (New)"""
+        trainer = ModelTrainer()
+        model = trainer.create_model('linear_svc')
+        assert isinstance(model, LinearSVC)
     
     def test_train_single_model(self, sample_X_y):
         """Test the training of a single model."""
         trainer = ModelTrainer()
         X, y = sample_X_y
         
-        model = trainer.train_single_model(X, y, model_type='logistic_regression')
+        # We test with one of the new models to ensure compatibility with sparse matrices
+        model = trainer.train_single_model(X, y, model_type='linear_svc') 
         
         assert model is not None
-        assert 'logistic_regression' in trainer.trained_models
-        assert hasattr(model, 'classes_'), "The trained model should have classification attributes"
+        assert 'linear_svc' in trainer.trained_models
+        # For classification models, checking for 'classes_' is essential
+        assert hasattr(model, 'classes_'), "The trained model should have classification attributes (classes_)"
         
     def test_predict(self, sample_X_y):
         """Test prediction."""
