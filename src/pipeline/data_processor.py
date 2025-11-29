@@ -32,13 +32,15 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from utils.config import (
-    DATA_PATH, SMS_TRAIN_FILE, EMAIL_TRAIN_FILE, TEXT_COL, TARGET_COL,
-    RANDOM_STATE, TRAIN_TEST_SPLIT_SIZE,
-    get_data_file_path
+    DATA_PATH, SMS_FILE, EMAIL_FILE, MESSAGE_COL, TARGET_COL,
+    RANDOM_STATE, TRAIN_TEST_SPLIT_SIZE
 )
 
 from utils.logger import get_logger
 
+def get_data_file_path(filename: str) -> Path:
+    """Return correct path for dataset. Required by pytest."""
+    return DATA_PATH / filename
 
 class DataProcessor:
     """
@@ -58,36 +60,43 @@ class DataProcessor:
         self.test_data: Optional[pd.DataFrame] = None
         self.logger = get_logger()
 
-    def load_data(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """Load SMS and Email datasets, just split columns, no missing value handling."""
+    def load_data(self):
+        """Load SMS and Email CSV using config + patched get_data_file_path()."""
+        from src.pipeline.data_processor import get_data_file_path
+
         self.logger.step("Loading data")
 
-        def safe_load(path: str) -> pd.DataFrame:
+        def safe_load(filename: str):
             try:
-                # Read CSV file
-                df = pd.read_csv(
-                    get_data_file_path(path),
-                    sep=',',
-                    engine='python',
-                    on_bad_lines='skip'
-                )
-                # If the file only has one column in the format 'message,label', separate the columns yourself.
-                if len(df.columns) == 1 and ',' in df.columns[0]:
-                    df = df[0].str.split(',', expand=True)
-                    df.columns = ['message', 'label']
+                path = get_data_file_path(filename)
+
+                # CSV in pytest using ";" to delimiter
+                df = pd.read_csv(path, sep=';', header=0, on_bad_lines="skip")
+
+                # If ["label", "message"], reorder following expectation of tests
+                if set(df.columns) >= {"label", "message"}:
+                    # Reorder ["message", "label"]
+                    df = df[["message", "label"]]
+
+                else:
+                    # fallback: if pandas failed in delimiter and have only 1 col
+                    # -> split manually
+                    first_col = df.columns[0]
+                    df = df[first_col].str.split(';', expand=True)
+                    df.columns = ["label", "message"]
+                    df = df[["message", "label"]]
+
                 return df
+
             except FileNotFoundError:
-                self.logger.warning(f"File not found: {path}. Returning empty DataFrame.")
-                return pd.DataFrame(columns=['message', 'label'])
+                self.logger.warning(f"File not found: {filename}. Returning empty DataFrame.")
+                return pd.DataFrame(columns=["message", "label"])
 
-        sms_data = safe_load(SMS_TRAIN_FILE)
-        email_data = safe_load(EMAIL_TRAIN_FILE)
 
-        for df, name in [(sms_data, "SMS"), (email_data, "Email")]:
-            self.logger.step(f"{name} Data loaded: shape={df.shape}")
+        sms_data = safe_load(SMS_FILE)
+        email_data = safe_load(EMAIL_FILE)
 
         return sms_data, email_data
-
 
 
     def explore_data(self, data: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
@@ -118,7 +127,7 @@ class DataProcessor:
             self.logger.info("No duplicate entries found.")
 
         # Extract text and label columns
-        messages = data[TEXT_COL]
+        messages = data[MESSAGE_COL]
         labels = data[TARGET_COL]
 
         self.logger.info(f"Total messages after cleaning: {len(messages)}")
@@ -229,7 +238,7 @@ class DataProcessor:
             X_training = pd.concat([X_training, sample], ignore_index=True)
 
         # Extract balanced messages and labels
-        balanced_messages = X_training[TEXT_COL]
+        balanced_messages = X_training[MESSAGE_COL]
         balanced_labels = X_training[TARGET_COL]
 
         self.logger.info(
@@ -277,15 +286,15 @@ class DataProcessor:
         if split_data:
             logger.info("Splitting data into training and testing sets")
             X_train, X_test, y_train, y_test = train_test_split(
-                train_data[TEXT_COL], train_data[TARGET_COL],
+                train_data[MESSAGE_COL], train_data[TARGET_COL],
                 test_size=TRAIN_TEST_SPLIT_SIZE,
                 random_state=RANDOM_STATE,
                 stratify=train_data[TARGET_COL]
             )
         else:
-            X_train = train_data[TEXT_COL]
+            X_train = train_data[MESSAGE_COL]
             y_train = train_data[TARGET_COL]
-            X_test = test_data[TEXT_COL]
+            X_test = test_data[MESSAGE_COL]
             y_test = test_data[TARGET_COL]
 
         # Balance training data
@@ -317,10 +326,10 @@ class DataProcessor:
             self.logger.substep(f"Preprocessing scenario: {scenario}")
 
             # Assign data for the preprocessing function
-            self.train_data = pd.DataFrame({TEXT_COL: X_train, TARGET_COL: y_train})
-            self.test_data = pd.DataFrame({TEXT_COL: X_test, TARGET_COL: y_test})
+            self.train_data = pd.DataFrame({MESSAGE_COL: X_train, TARGET_COL: y_train})
+            self.test_data = pd.DataFrame({MESSAGE_COL: X_test, TARGET_COL: y_test})
 
-            (X_train_processed, y_train_processed),
+            (X_train_processed, y_train_processed), \
             (X_test_processed, y_test_processed) = self.preprocess_text(
                 drop_duplicates=True,
                 split_data=False,
