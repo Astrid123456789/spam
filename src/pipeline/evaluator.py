@@ -19,4 +19,7 @@ class Evaluator:
     
     Handles the calculation of classification metrics and hyperparameter optimization.
     """
+    def __init__(self):
+        """Initialize the evaluator."""
+        self.logger = get_logger()
     pass
