@@ -116,3 +116,26 @@ class TextPreprocessor:
         """Combine fit and transform for training data."""
         self.fit_vectorizer(train_messages)
         return self.transform_messages(train_messages)
+
+    def load_and_transform_data(self, train_df, test_df):
+        """
+        Orchestrate the loading and transformation of train/test data.
+        
+        Args:
+            train_df: Training DataFrame with 'message' and 'label'.
+            test_df: Test DataFrame with 'message' and 'label'.
+            
+        Returns:
+            X_train, y_train, X_test, y_test
+        """
+        from utils.config import MESSAGE_COL, TARGET_COL
+        
+        # Fit on training data
+        X_train = self.fit_transform(train_df[MESSAGE_COL])
+        y_train = train_df[TARGET_COL].apply(lambda x: 1 if x == 'spam' else 0).values # Ensure numeric
+        
+        # Transform test data
+        X_test = self.transform_messages(test_df[MESSAGE_COL])
+        y_test = test_df[TARGET_COL].apply(lambda x: 1 if x == 'spam' else 0).values
+        
+        return X_train, y_train, X_test, y_test
