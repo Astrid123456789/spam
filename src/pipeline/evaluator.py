@@ -43,9 +43,9 @@ class Evaluator:
         #POSITIVE_CLASS_LABEL (usually 1 for Spam) ensures we track the correct target
         pos_label = 1 if isinstance(POSITIVE_CLASS_LABEL, str) else POSITIVE_CLASS_LABEL
         accuracy = accuracy_score(y_true, y_pred)
-        precision = precision_score(y_true, y_pred, pos_label=POSITIVE_CLASS_LABEL, zero_division=0)
-        recall = recall_score(y_true, y_pred, pos_label=POSITIVE_CLASS_LABEL, zero_division=0)
-        f1 = f1_score(y_true, y_pred, pos_label=POSITIVE_CLASS_LABEL, zero_division=0)
+        precision = precision_score(y_true, y_pred, pos_label=pos_label, zero_division=0)
+        recall = recall_score(y_true, y_pred, pos_label=pos_label, zero_division=0)
+        f1 = f1_score(y_true, y_pred, pos_label=pos_label, zero_division=0)
 
         metrics = {
             "accuracy": accuracy,
