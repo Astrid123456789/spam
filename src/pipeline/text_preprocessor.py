@@ -13,7 +13,7 @@ from utils.config import TARGET_COL, MESSAGE_COL, VECTORIZER_TYPE, MAX_FEATURES
 from utils.logger import get_logger, LogLevel
 
 
-class FeatureEngineer:
+class TextPreprocessor:
     """
     Feature engineer for spam detection.
     
@@ -40,7 +40,7 @@ class FeatureEngineer:
         message = message.lower()
         
         # Replace numbers with a unique token '<NUM>' (according to spam.ipynb)
-        message = re.sub(r'\d+', '<NUM>', message)
+        message = re.sub(r'\d+', '<num>', message)
         
         # Normalize whitespace and remove leading/trailing spaces
         message = re.sub(r'\s+', ' ', message).strip()

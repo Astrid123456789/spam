@@ -11,6 +11,7 @@ from datetime import datetime
 from enum import IntEnum
 from typing import Optional, Any, Dict
 from contextlib import contextmanager
+import pandas as pd
 
 
 class LogLevel(IntEnum):

@@ -10,7 +10,7 @@ This package contains the essential components for the machine learning workflow
 
 # Importation des classes principales pour un accès facile
 from .data_processor import DataProcessor
-from .feature_engineer import TextPreprocessor
+from .text_preprocessor import TextPreprocessor
 from .model_trainer import ModelTrainer
 from .evaluator import Evaluator
 
