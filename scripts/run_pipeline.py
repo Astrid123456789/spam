@@ -64,25 +64,38 @@ def run_pipeline(args):
         validate_data_files()
         
         # 2. Data Loading and Preprocessing
-        logger.step(1, "DATA LOADING AND PREPROCESSING", total_steps=4)
+        logger.step("DATA LOADING AND PREPROCESSING", 1, total_steps=4)
         data_processor = DataProcessor()
-        # Load and split data for classification
-        data_processor.load_data() 
+        # Load and preprocess data (splitting and balancing is handled here)
+        scenarios = data_processor.load_and_preprocess()
+        
+        # Format: (X_train, X_test, y_train, y_test) as pd.Series
+        X_train_txt, X_test_txt, y_train_s, y_test_s = scenarios['combined']
         
         # 3. Feature Engineering (Text Vectorization)
-        logger.step(2, "TEXT PREPROCESSING AND VECTORIZATION", total_steps=4)
+        logger.step("TEXT PREPROCESSING AND VECTORIZATION", 2, total_steps=4)
         text_preprocessor = TextPreprocessor()
         
         # Apply feature transformation (e.g., TF-IDF)
-        X_train, y_train, X_test, y_test = text_preprocessor.load_and_transform_data(
-            data_processor.train_data, data_processor.test_data
-        )
+        # Note: fit_transform expects Series/list of text
+        X_train = text_preprocessor.fit_transform(X_train_txt)
+        X_test = text_preprocessor.transform_messages(X_test_txt)
+        
+        # Convert labels to numeric (spam=1, ham=0) if not already
+        # DataProcessor outputs labels as present in CSV
+        if y_train_s.dtype == 'object':
+            y_train = y_train_s.apply(lambda x: 1 if x == POSITIVE_CLASS_LABEL else 0).values
+            y_test = y_test_s.apply(lambda x: 1 if x == POSITIVE_CLASS_LABEL else 0).values
+        else:
+            # Already numeric (0/1)
+            y_train = y_train_s.values
+            y_test = y_test_s.values
 
         logger.success(f"Training data: {X_train.shape[0]} samples, {X_train.shape[1]} features (y: {y_train.shape})")
         logger.success(f"Test data: {X_test.shape[0]} samples, {X_test.shape[1]} features (y: {y_test.shape})")
 
         # 4. Model Training and Optimization
-        logger.step(3, "MODEL TRAINING AND EVALUATION", total_steps=4)
+        logger.step("MODEL TRAINING AND EVALUATION", 3, total_steps=4)
         model_trainer = ModelTrainer()
         
         # Note: 'groups' is usually for time-series/geographic data, kept as placeholder 
@@ -130,7 +143,7 @@ def run_pipeline(args):
             return
 
         # 5. Final Evaluation
-        logger.step(4, "EVALUATION ON TEST SET", total_steps=4)
+        logger.step("EVALUATION ON TEST SET", 4, total_steps=4)
         
         if model_trainer.best_model is None:
              logger.error("No model was trained or selected for final evaluation.")
@@ -140,7 +153,9 @@ def run_pipeline(args):
         y_pred = model_trainer.predict(model_trainer.best_model, X_test)
         
         # Calculate classification metrics
-        final_metrics = model_trainer.evaluator.calculate_metrics(y_test, y_pred, positive_label=POSITIVE_CLASS_LABEL)
+        # Calculate classification metrics
+        # Since we converted labels to numeric, positive_label should be 1
+        final_metrics = model_trainer.evaluator.calculate_metrics(y_test, y_pred, positive_label=1)
         
         # Logging final results
         logger.results_summary({"Final Test Metrics": final_metrics})
