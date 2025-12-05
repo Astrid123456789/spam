@@ -84,7 +84,7 @@ class ModelTrainer:
             
         return model
 
-    def train_single_model(self, X, y, model_type, **model_params):
+    def train_single_model(self, X, y, model_type, mlflow_tracking=False, **model_params):
         """
         Train a single model on the entire training dataset.
         
