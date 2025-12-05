@@ -13,8 +13,19 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import MultinomialNB, BernoulliNB
 from sklearn.svm import LinearSVC
 
-from pipeline.model_trainer import ModelTrainer
+from unittest.mock import MagicMock
+from src.pipeline.model_trainer import ModelTrainer
 from utils.config import MODEL_TYPES
+
+
+# Mock mlflow to prevent errors during testing
+@pytest.fixture(autouse=True)
+def mock_mlflow(monkeypatch):
+    """Mock mlflow to avoid creating actual runs during tests."""
+    mock = MagicMock()
+    # Patch the module-level mlflow object in model_trainer
+    monkeypatch.setattr("src.pipeline.model_trainer.mlflow", mock)
+    return mock
 
 
 # Fixture for classification data (Simulated sparse matrix)
