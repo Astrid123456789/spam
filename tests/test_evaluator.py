@@ -72,3 +72,19 @@ class TestEvaluator:
         assert metrics["accuracy"] == 0.5
         assert metrics["precision"] == 0.5
         assert metrics["recall"] == 0.5
+
+    def test_precision_focus(self, evaluator):
+        """
+        Test a case specifically for Precision (False Positive check).
+        
+        Context: The model flags everything as spam.
+        y_true: [0, 0] (All Ham)
+        y_pred: [1, 1] (All predicted Spam)
+        
+        TP=0, FP=2. Precision = 0 / 2 = 0.0
+        """
+        y_true = [0, 0]
+        y_pred = [1, 1]
+        
+        metrics = evaluator.evaluate_predictions(y_true, y_pred)
+        assert metrics["precision"] == 0.0
