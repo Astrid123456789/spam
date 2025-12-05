@@ -62,3 +62,21 @@ class Evaluator:
 
         return metrics
 
+    def generate_report(self, y_true, y_pred):
+        """
+        Generate a full text classification report.
+
+        Args:
+            y_true (array-like): Ground truth labels.
+            y_pred (array-like): Predicted labels.
+
+        Returns:
+            str: Text summary of the precision, recall, F1 score for each class.
+        """
+        report = classification_report(
+            y_true, 
+            y_pred, 
+            zero_division=0
+        )
+        self.logger.info("Classification Report:\n" + report)
+        return report
