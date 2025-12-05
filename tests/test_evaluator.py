@@ -88,3 +88,19 @@ class TestEvaluator:
         
         metrics = evaluator.evaluate_predictions(y_true, y_pred)
         assert metrics["precision"] == 0.0
+    
+    def test_recall_focus(self, evaluator):
+        """
+        Test a case specifically for Recall (False Negative check).
+        
+        Context: The model misses all spam.
+        y_true: [1, 1] (All Spam)
+        y_pred: [0, 0] (All predicted Ham)
+        
+        TP=0, FN=2. Recall = 0 / 2 = 0.0
+        """
+        y_true = [1, 1]
+        y_pred = [0, 0]
+        
+        metrics = evaluator.evaluate_predictions(y_true, y_pred)
+        assert metrics["recall"] == 0.0
