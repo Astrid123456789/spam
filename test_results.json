@@ -1,0 +1,48 @@
+{
+  "execution_metadata": {
+    "timestamp": "2025-12-05T10:33:14.864730",
+    "execution_time_seconds": 7.03,
+    "runner_version": "Enhanced Test Runner v2.0",
+    "environment": {
+      "python_version": "3.12.2 | packaged by conda-forge | (main, Feb 16 2024, 20:54:21) [Clang 16.0.6 ]",
+      "platform": "macOS-15.6.1-arm64-arm-64bit",
+      "working_directory": "/Users/sushantpokharel/Desktop/Deuxieme Sem/Spam/spam"
+    }
+  },
+  "test_summary": {
+    "total_tests": 4,
+    "passed_tests": 3,
+    "failed_tests": 1,
+    "success_rate": 75.0,
+    "test_modules": [
+      "text_preprocessor",
+      "evaluator",
+      "model_trainer",
+      "data_processor"
+    ]
+  },
+  "detailed_results": {
+    "text_preprocessor": true,
+    "evaluator": false,
+    "model_trainer": true,
+    "data_processor": true
+  },
+  "module_breakdown": {
+    "text_preprocessor": {
+      "passed": true,
+      "status": "PASS"
+    },
+    "evaluator": {
+      "passed": false,
+      "status": "FAIL"
+    },
+    "model_trainer": {
+      "passed": true,
+      "status": "PASS"
+    },
+    "data_processor": {
+      "passed": true,
+      "status": "PASS"
+    }
+  }
+}
