@@ -78,6 +78,16 @@ class TextPreprocessor:
         logger.info(f"Vocabulary size: {len(self.selected_features)}")
         logger.success("Vectorizer fit completed")
         
+        # Log to MLflow
+        try:
+            import mlflow
+            if mlflow.active_run():
+                mlflow.log_param("vectorizer_type", VECTORIZER_TYPE)
+                mlflow.log_param("max_features", MAX_FEATURES)
+                mlflow.log_param("vocab_size", len(self.selected_features))
+        except ImportError:
+            pass
+        
 
     def transform_messages(self, messages):
         """
