@@ -104,3 +104,15 @@ class TestEvaluator:
         
         metrics = evaluator.evaluate_predictions(y_true, y_pred)
         assert metrics["recall"] == 0.0
+    
+    def test_get_confusion_matrix(self, evaluator, mixed_predictions):
+        """Test the confusion matrix shape and values."""
+        y_true, y_pred = mixed_predictions
+        cm = evaluator.get_confusion_matrix(y_true, y_pred)
+        
+        # Expected: [[1, 1], [1, 1]] based on TP=1, FP=1, FN=1, TN=1
+        assert cm.shape == (2, 2)
+        assert cm[0, 0] == 1 # TN
+        assert cm[0, 1] == 1 # FP
+        assert cm[1, 0] == 1 # FN
+        assert cm[1, 1] == 1 # TP
