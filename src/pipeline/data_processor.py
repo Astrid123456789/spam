@@ -81,6 +81,9 @@ class DataProcessor:
                 else:
                     # fallback: if pandas failed in delimiter and have only 1 col
                     # -> split manually
+
+                    
+
                     # This fallback assumes ; split which corresponds to legacy SMS assumption
                     if sep == ';': 
                         first_col = df.columns[0]
