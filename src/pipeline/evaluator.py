@@ -80,3 +80,22 @@ class Evaluator:
         )
         self.logger.info("Classification Report:\n" + report)
         return report
+    def get_confusion_matrix(self, y_true, y_pred):
+        """
+        Compute the confusion matrix.
+        
+        | TN | FP |
+        | FN | TP |
+
+        Args:
+            y_true (array-like): Ground truth labels.
+            y_pred (array-like): Predicted labels.
+
+        Returns:
+            np.ndarray: Confusion matrix.
+        """
+        cm = confusion_matrix(y_true, y_pred, labels=[0, 1])
+        tn, fp, fn, tp = cm.ravel()
+        
+        self.logger.info(f"Confusion Matrix: TN={tn}, FP={fp}, FN={fn}, TP={tp}")
+        return cm
