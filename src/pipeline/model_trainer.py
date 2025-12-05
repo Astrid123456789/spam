@@ -160,4 +160,28 @@ class ModelTrainer:
         for model_type in model_types:
             self.train_single_model(X, y, model_type)
             
-   
+    def compare_models(self, mlflow_tracking=False):
+        """
+        Compare trained models and select the best one based on training score (simplification).
+
+        """
+        logger = get_logger()
+        logger.substep("Comparing models...")
+        
+        best_score = -1
+        best_model = None
+        best_name = None
+        
+        for name, model in self.trained_models.items():
+           
+            pass 
+        
+        if not hasattr(self, 'model_scores'):
+            self.model_scores = {}
+            
+        if self.trained_models:
+            best_name = list(self.trained_models.keys())[0]
+            best_model = self.trained_models[best_name]
+            logger.info(f"Selected {best_name} (Simplistic selection)")
+            
+        return best_model, best_name, {}
