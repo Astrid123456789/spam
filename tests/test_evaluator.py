@@ -44,7 +44,7 @@ class TestEvaluator:
         assert "recall" in metrics
         assert "f1_score" in metrics
 
-        
+
     def test_metrics_perfect_score(self, evaluator, perfect_predictions):
         """Test that perfect predictions return 1.0 for all metrics."""
         y_true, y_pred = perfect_predictions
@@ -54,3 +54,21 @@ class TestEvaluator:
         assert metrics["precision"] == 1.0
         assert metrics["recall"] == 1.0
         assert metrics["f1_score"] == 1.0
+
+    def test_metrics_logic_mixed(self, evaluator, mixed_predictions):
+        """
+        Test calculation logic on mixed data.
+        
+        Based on mixed_predictions fixture:
+        TP=1, FP=1, FN=1, TN=1
+        
+        Accuracy  = (TP+TN)/Total = 2/4 = 0.5
+        Precision = TP/(TP+FP)    = 1/2 = 0.5
+        Recall    = TP/(TP+FN)    = 1/2 = 0.5
+        """
+        y_true, y_pred = mixed_predictions
+        metrics = evaluator.evaluate_predictions(y_true, y_pred)
+
+        assert metrics["accuracy"] == 0.5
+        assert metrics["precision"] == 0.5
+        assert metrics["recall"] == 0.5
