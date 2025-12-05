@@ -1,0 +1,118 @@
+import pytest
+import numpy as np
+from src.pipeline.evaluator import Evaluator
+from src.utils.config import POSITIVE_CLASS_LABEL
+
+class TestEvaluator:
+    @pytest.fixture
+    def evaluator(self):
+        """Fixture to initialize the Evaluator."""
+        return Evaluator()
+    @pytest.fixture
+    def perfect_predictions(self):
+        """Case where predictions match truth exactly."""
+        y_true = np.array([0, 1, 0, 1, 1])
+        y_pred = np.array([0, 1, 0, 1, 1])
+        return y_true, y_pred
+    
+    @pytest.fixture
+    def mixed_predictions(self):
+        """
+        Case with mixed errors to test Precision vs Recall.
+        
+        y_true: [0, 1, 1, 0]
+        y_pred: [0, 1, 0, 1]
+        
+        Analysis:
+        - Index 0: TN (Ham correctly identified)
+        - Index 1: TP (Spam correctly identified)
+        - Index 2: FN (Spam missed)
+        - Index 3: FP (Ham incorrectly flagged as Spam)
+        """
+        y_true = np.array([0, 1, 1, 0])
+        y_pred = np.array([0, 1, 0, 1])
+        return y_true, y_pred
+    
+    def test_evaluate_predictions_structure(self, evaluator, perfect_predictions):
+        """Test that the method returns a dictionary with correct keys."""
+        y_true, y_pred = perfect_predictions
+        metrics = evaluator.evaluate_predictions(y_true, y_pred)
+
+        assert isinstance(metrics, dict)
+        assert "accuracy" in metrics
+        assert "precision" in metrics
+        assert "recall" in metrics
+        assert "f1_score" in metrics
+
+
+    def test_metrics_perfect_score(self, evaluator, perfect_predictions):
+        """Test that perfect predictions return 1.0 for all metrics."""
+        y_true, y_pred = perfect_predictions
+        metrics = evaluator.evaluate_predictions(y_true, y_pred)
+
+        assert metrics["accuracy"] == 1.0
+        assert metrics["precision"] == 1.0
+        assert metrics["recall"] == 1.0
+        assert metrics["f1_score"] == 1.0
+
+    def test_metrics_logic_mixed(self, evaluator, mixed_predictions):
+        """
+        Test calculation logic on mixed data.
+        
+        Based on mixed_predictions fixture:
+        TP=1, FP=1, FN=1, TN=1
+        
+        Accuracy  = (TP+TN)/Total = 2/4 = 0.5
+        Precision = TP/(TP+FP)    = 1/2 = 0.5
+        Recall    = TP/(TP+FN)    = 1/2 = 0.5
+        """
+        y_true, y_pred = mixed_predictions
+        metrics = evaluator.evaluate_predictions(y_true, y_pred)
+
+        assert metrics["accuracy"] == 0.5
+        assert metrics["precision"] == 0.5
+        assert metrics["recall"] == 0.5
+
+    def test_precision_focus(self, evaluator):
+        """
+        Test a case specifically for Precision (False Positive check).
+        
+        Context: The model flags everything as spam.
+        y_true: [0, 0] (All Ham)
+        y_pred: [1, 1] (All predicted Spam)
+        
+        TP=0, FP=2. Precision = 0 / 2 = 0.0
+        """
+        y_true = [0, 0]
+        y_pred = [1, 1]
+        
+        metrics = evaluator.evaluate_predictions(y_true, y_pred)
+        assert metrics["precision"] == 0.0
+    
+    def test_recall_focus(self, evaluator):
+        """
+        Test a case specifically for Recall (False Negative check).
+        
+        Context: The model misses all spam.
+        y_true: [1, 1] (All Spam)
+        y_pred: [0, 0] (All predicted Ham)
+        
+        TP=0, FN=2. Recall = 0 / 2 = 0.0
+        """
+        y_true = [1, 1]
+        y_pred = [0, 0]
+        
+        metrics = evaluator.evaluate_predictions(y_true, y_pred)
+        assert metrics["recall"] == 0.0
+    
+    def test_get_confusion_matrix(self, evaluator, mixed_predictions):
+        """Test the confusion matrix shape and values."""
+        y_true, y_pred = mixed_predictions
+        cm = evaluator.get_confusion_matrix(y_true, y_pred)
+        
+        # Expected: [[1, 1], [1, 1]] based on TP=1, FP=1, FN=1, TN=1
+        assert cm.shape == (2, 2)
+        assert cm[0, 0] == 1 # TN
+        assert cm[0, 1] == 1 # FP
+        assert cm[1, 0] == 1 # FN
+        assert cm[1, 1] == 1 # TP
