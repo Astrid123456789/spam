@@ -62,16 +62,16 @@ class DataProcessor:
 
     def load_data(self):
         """Load SMS and Email CSV using config + patched get_data_file_path()."""
-        from src.pipeline.data_processor import get_data_file_path
+        # from src.pipeline.data_processor import get_data_file_path # guys, looks like Incorrect import (verify)
+        pass
 
         self.logger.step("Loading data")
 
-        def safe_load(filename: str):
+        def safe_load(filename: str, sep: str = ';'):
             try:
                 path = get_data_file_path(filename)
-
-                # CSV in pytest using ";" to delimiter
-                df = pd.read_csv(path, sep=';', header=0, on_bad_lines="skip")
+                
+                df = pd.read_csv(path, sep=sep, header=0, on_bad_lines="skip")
 
                 # If ["label", "message"], reorder following expectation of tests
                 if set(df.columns) >= {"label", "message"}:
@@ -81,21 +81,35 @@ class DataProcessor:
                 else:
                     # fallback: if pandas failed in delimiter and have only 1 col
                     # -> split manually
-                    first_col = df.columns[0]
-                    df = df[first_col].str.split(';', expand=True)
-                    df.columns = ["label", "message"]
-                    df = df[["message", "label"]]
+                    # This fallback assumes ; split which corresponds to legacy SMS assumption
+                    if sep == ';': 
+                        first_col = df.columns[0]
+                        df = df[first_col].str.split(';', expand=True)
+                        if df.shape[1] >= 2:
+                            df.columns = ["label", "message"] + [f"col_{i}" for i in range(2, df.shape[1])]
+                            df = df[["message", "label"]]
+                        else:
+                             # Failed to split
+                             self.logger.warning(f"Failed to parse {filename} with fallback.")
+                             return pd.DataFrame(columns=["message", "label"])
+                    else:
+                        # Fallback for comma not implemented, assume read_csv worked or failed loudly
+                        pass
 
                 return df
 
             except FileNotFoundError:
                 self.logger.warning(f"File not found: {filename}. Returning empty DataFrame.")
                 return pd.DataFrame(columns=["message", "label"])
+            except Exception as e:
+                self.logger.warning(f"Error loading {filename}: {e}. Returning empty DataFrame.")
+                return pd.DataFrame(columns=["message", "label"])
 
-
-        sms_data = safe_load(SMS_FILE)
-        email_data = safe_load(EMAIL_FILE)
-
+        # SMS is semicolon separated
+        sms_data = safe_load(SMS_FILE, sep=';')
+        # Email is comma separated
+        email_data = safe_load(EMAIL_FILE, sep=',')
+        
         return sms_data, email_data
 
 
