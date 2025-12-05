@@ -149,3 +149,15 @@ class ModelTrainer:
         predictions = model.predict(X)
         logger.success(f"Generated {len(predictions)} predictions")
         return predictions
+
+    def train_multiple_models(self, X, y, model_types, mlflow_tracking=False):
+        """
+        Train multiple models and compare them.
+        """
+        logger = get_logger()
+        logger.step(3, "TRAINING MULTIPLE MODELS", total_steps=None)
+        
+        for model_type in model_types:
+            self.train_single_model(X, y, model_type)
+            
+   
