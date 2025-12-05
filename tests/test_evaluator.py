@@ -32,3 +32,14 @@ class TestEvaluator:
         y_true = np.array([0, 1, 1, 0])
         y_pred = np.array([0, 1, 0, 1])
         return y_true, y_pred
+    
+    def test_evaluate_predictions_structure(self, evaluator, perfect_predictions):
+        """Test that the method returns a dictionary with correct keys."""
+        y_true, y_pred = perfect_predictions
+        metrics = evaluator.evaluate_predictions(y_true, y_pred)
+
+        assert isinstance(metrics, dict)
+        assert "accuracy" in metrics
+        assert "precision" in metrics
+        assert "recall" in metrics
+        assert "f1_score" in metrics
