@@ -43,3 +43,14 @@ class TestEvaluator:
         assert "precision" in metrics
         assert "recall" in metrics
         assert "f1_score" in metrics
+
+        
+    def test_metrics_perfect_score(self, evaluator, perfect_predictions):
+        """Test that perfect predictions return 1.0 for all metrics."""
+        y_true, y_pred = perfect_predictions
+        metrics = evaluator.evaluate_predictions(y_true, y_pred)
+
+        assert metrics["accuracy"] == 1.0
+        assert metrics["precision"] == 1.0
+        assert metrics["recall"] == 1.0
+        assert metrics["f1_score"] == 1.0
