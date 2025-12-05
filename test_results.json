@@ -1,19 +1,19 @@
 {
   "execution_metadata": {
-    "timestamp": "2025-12-05T11:08:30.994036",
-    "execution_time_seconds": 28.12,
+    "timestamp": "2025-12-05T11:31:02.056072",
+    "execution_time_seconds": 7.57,
     "runner_version": "Enhanced Test Runner v2.0",
     "environment": {
-      "python_version": "3.12.3 (main, Apr 15 2024, 18:07:06) [Clang 17.0.6 ]",
-      "platform": "macOS-14.7.6-x86_64-i386-64bit",
-      "working_directory": "/Users/meryem/spam"
+      "python_version": "3.12.2 | packaged by conda-forge | (main, Feb 16 2024, 20:54:21) [Clang 16.0.6 ]",
+      "platform": "macOS-15.6.1-arm64-arm-64bit",
+      "working_directory": "/Users/sushantpokharel/Desktop/Deuxieme Sem/Spam/spam"
     }
   },
   "test_summary": {
     "total_tests": 4,
-    "passed_tests": 3,
-    "failed_tests": 1,
-    "success_rate": 75.0,
+    "passed_tests": 4,
+    "failed_tests": 0,
+    "success_rate": 100.0,
     "test_modules": [
       "text_preprocessor",
       "evaluator",
@@ -23,7 +23,7 @@
   },
   "detailed_results": {
     "text_preprocessor": true,
-    "evaluator": false,
+    "evaluator": true,
     "model_trainer": true,
     "data_processor": true
   },
@@ -33,8 +33,8 @@
       "status": "PASS"
     },
     "evaluator": {
-      "passed": false,
-      "status": "FAIL"
+      "passed": true,
+      "status": "PASS"
     },
     "model_trainer": {
       "passed": true,
