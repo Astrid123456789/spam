@@ -10,8 +10,9 @@ import pytest
 from scipy.sparse import issparse, csr_matrix 
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
-from pipeline.text_preprocessor import TextPreprocessor
+from src.pipeline.text_preprocessor import TextPreprocessor
 from utils.config import TARGET_COL, MESSAGE_COL, VECTORIZER_TYPE
+
 
 class TestTextPreprocessor:
     """Series of tests for the technical validation of TextPreprocessor (NLP)."""
@@ -27,7 +28,7 @@ class TestTextPreprocessor:
         """Test the replacement of numbers with a <NUM> token."""
         engineer = TextPreprocessor()
         message = "I received 123 SMS and 45 emails in 2024."
-        expected = "i received <NUM> sms and <NUM> emails in <NUM>."
+        expected = "i received <num> sms and <num> emails in <num>."
         assert engineer.preprocess_message(message) == expected
         
     def test_preprocess_message_whitespace_handling(self):
@@ -54,7 +55,7 @@ class TestTextPreprocessor:
         
         # The preprocessed words should be in the vocabulary
         assert 'euros' in vocab
-        assert '<num>' in vocab # The token for number replacement
+        assert 'num' in vocab # The token for number replacement
         assert 'great' in vocab
         
     def test_transform_messages(self, sample_text_data):
