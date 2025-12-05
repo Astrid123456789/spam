@@ -13,6 +13,18 @@ from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from src.pipeline.text_preprocessor import TextPreprocessor
 from utils.config import TARGET_COL, MESSAGE_COL, VECTORIZER_TYPE
 
+@pytest.fixture
+def sample_text_data():
+    """Create sample text data for testing."""
+    messages = pd.Series([
+        "Win 1000 euros now!",
+        "Hello, this is a great day.",
+        "Call 12345 for free.",
+        "Meeting at 2pm."
+    ])
+    # Return structure matching what tests expect: _, messages, _
+    # This likely simulates (df, X_train, y_train) from DataProcessor
+    return None, messages, None
 
 class TestTextPreprocessor:
     """Series of tests for the technical validation of TextPreprocessor (NLP)."""
