@@ -405,7 +405,7 @@ For **future work**, you can:
 - **BENDAHMAN Meryem**:
 - **FAURIE Juliette**:
 - **FLICHY Astrid**: 
-- **PHAM Hai-Nguyen**:
+- **PHAM Ngoc Thu Uyen**:
 - **POKHAREL Sushant**:
 
 
