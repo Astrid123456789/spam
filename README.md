@@ -2,6 +2,8 @@
 
 A machine learning pipeline for **spam detection** on SMS and email messages using text-based features.
 
+**Authors**: BENDAHMAN Meryem, FAURIE Juliette, FLICHY Astrid, PHAM Ngoc Thu Uyen, POKHAREL Sushant
+
 ## Overview
 
 This project implements a complete, **CRISP-DM aligned machine learning pipeline** for classifying **SMS and email messages as spam or ham (non-spam)**. The goal is to turn raw, heterogeneous message data into **reliable, explainable predictions** that can support downstream applications such as email filtering, SMS gateways, or customer support tools.
@@ -128,6 +130,8 @@ spam-main/
 │  └─ spam.ipynb                 # Exploratory notebook used during development
 │
 ├─ tests/                        # Component-level tests (data, preprocessor, trainer, evaluator)
+│
+├─ assets/                        # Screenshots of Mlflow experiments and visualizations
 │
 ├─ test_results.json             # Latest test results snapshot
 ├─ test_proof.json               # Cryptographic proof of test execution (if enabled)
@@ -297,30 +301,73 @@ Vectorization is controlled via `utils/config.py`:
 
 Hyperparameter tuning (when `--optimize` is set) uses **GridSearchCV** over compact grids defined in `config.py` to keep experiments reproducible and training times manageable.
 
-### MLflow Experiment Tracking (Placeholders)
+### MLflow Experiment Tracking
 
-The pipeline is prepared for integration with **MLflow** (optional), logging:
+The pipeline is integrated with MLflow for robust experiment tracking and model versioning. Every run logs the model configuration, feature extraction parameters, and a comprehensive set of classification metrics, ensuring full reproducibility.
 
-* Model configuration (type, hyperparameters, vectorizer),
-* Dataset variant (SMS, Email, Combined, Transfer),
-* Evaluation metrics and cross-validation scores,
-* Artifacts (trained models, plots, reports).
+#### Main Tracked Runs (Experiment Summary)
 
-The main MLflow-related sections below are intentionally left as **blank tables**, ready to be populated once experiments are run and logged.
-
-#### Main Tracked Runs (to be filled)
+The following table summarizes the eight experiments conducted and logged in the MLflow UI. The comparison highlights the impact of hyperparameter optimization (--optimize) on model performance.
 
 | Run Name | Model | Dataset Variant | Vectorizer | Balancing | Optimization | Notes |
-| -------- | ----- | --------------- | ---------- | --------- | ------------ | ----- |
+| --- | --- | --- | --- | --- | --- | --- |
+| **Logistic Regression** | LogisticRegression | Combined | TfidfVectorizer | Yes | No | Base model performance (Benchmark). |
+| **Linear SVM** | LinearSVC | Combined | TfidfVectorizer | Yes | No | Base model performance (Benchmark). |
+| **Naive Bayes** | GaussianNB | Combined | TfidfVectorizer | Yes | No | Base model performance (Benchmark). |
+| **Bernoulli Naive Bayes** | BernoulliNB | Combined | TfidfVectorizer | Yes | No | Base model, very poor Recall and F1 Score. |
+| **Logistic Regression (Optimized)** | LogisticRegression | Combined | TfidfVectorizer | Yes | Yes | Best ROC-AUC. Optimized C-parameter and solver. |
+| **Linear SVM (Optimized)** | LinearSVC | Combined | TfidfVectorizer | Yes | Yes | Best F1 Score. Optimized C-parameter. |
+| **Naive Bayes (Optimized)** | GaussianNB | Combined | TfidfVectorizer | Yes | Yes | Optimized model, showing decent performance. |
+| **Bernoulli Naive Bayes (Optimized)** | BernoulliNB | Combined | TfidfVectorizer | Yes | Yes | Optimized model. Performance remains the lowest. |
 
-#### Aggregated Metrics (to be filled)
+**Visualizing the Experiments**:
+
+![A full view of the 8 logged runs in the MLflow UI](assets/all_experiments.png)
+
+#### Aggregated Metrics (Performance Comparison)
+
+The final performance evaluation was performed on the test set. The table below presents the full results, with a clear separation between base models and their optimized counterparts.
 
 | Model | Dataset | Accuracy | Precision (Spam) | Recall (Spam) | F1 (Spam) | ROC-AUC |
-| ----- | ------- | -------- | ---------------- | ------------- | --------- | ------- |
+| --- | --- | --- | --- | --- | --- | --- |
+| **Logistic Regression (Base)** | Combined | 0.9635 | 0.9518 | 0.8755 | 0.9120 | 0.9883 |
+| **LinearSVC (Base)** | Combined | 0.9790 | 0.9732 | 0.9282 | 0.9502 | N/A |
+| **Naive Bayes (Base)** | Combined | 0.9102 | 0.9632 | 0.6075 | 0.7451 | 0.9409 |
+| **Bernoulli NB (Base)** | Combined | 0.7877 | 1.0000 | 0.0168 | 0.0331 | 0.6858 |
+| **Logistic Regression (Optimized)** | Combined | 0.9763 | 0.9688 | 0.9198 | 0.9437 | **0.9949** |
+| **LinearSVC (Optimized)** | Combined | **0.9804** | 0.9654 | 0.9430 | 0.9541 | N/A |
+| **Naive Bayes (Optimized)** | Combined | 0.9180 | 0.9327 | 0.6434 | 0.7721 | 0.9514 |
+| **Bernoulli NB (Optimized)** | Combined | 0.7825 | 1.0000 | 0.0189 | 0.0372 | 0.7067 |
 
-You can populate these tables manually after running experiments and inspecting them in the MLflow UI.
+**Conclusion**: The **Optimized LinearSVC** achieved the highest F1 Score (**0.9541**), making it the most balanced classifier for the test set. Optimization provided the most significant F1 gain for the Logistic Regression model and the Naive Bayes model. The **Optimized Logistic Regression** demonstrated the best overall discriminative power (ROC-AUC: **0.9949**).
 
----
+#### Visualizing Performance Differences
+
+MLflow's comparison feature allows for quick visualization of metric gains across runs, providing evidence of successful optimization.
+
+![Comparison chart showing F1 Score evolution across different models and runs](assets/comparison_graph.png)
+
+#### Traceability and Reproducibility
+
+##### Best Run Details
+
+The following capture shows the detailed metrics logged for the Optimized Logistic Regression run, which yielded the best ROC-AUC score. This provides the exact metric values for the final model.
+
+![Metrics overview for the Logistic Regression run (Best ROC-AUC)](assets/logistic_regression_optimize_metrics.png)
+
+##### Parameter Logging
+
+MLflow automatically logs all parameters, ensuring the exact feature engineering setup and the model's hyperparameters are captured. This capture confirms the use of TfidfVectorizer and a vocab_size of 5000.
+
+![Parameters logged for a single run, showing vectorizer and feature configuration](assets/logistic_regression_parameters.png)
+
+#### Artifacts and Model Versioning
+
+The pipeline automatically logs the final trained classifier model as an artifact. This ensures that the exact model instance responsible for the recorded metrics is saved and ready for deployment or loading.
+
+![Artifacts section showing the final_classifier_model folder with the MLmodel file](assets/artifacts_folder.png)
+
+**Note**: More screenshots detailing individual experiments and visualizations are available in the assets/ folder of this repository.
 
 ## Methodology
 
@@ -399,13 +446,3 @@ For **future work**, you can:
 * Explore **threshold tuning** based on business constraints (e.g. minimize false positives vs maximize spam catch rate).
 
 ---
-
-## Authors
-
-- **BENDAHMAN Meryem**:
-- **FAURIE Juliette**:
-- **FLICHY Astrid**: 
-- **PHAM Ngoc Thu Uyen**:
-- **POKHAREL Sushant**:
-
-
