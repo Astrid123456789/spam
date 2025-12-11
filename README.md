@@ -341,7 +341,14 @@ The final performance evaluation was performed on the test set. The table below 
 | **Naive Bayes (Optimized)** | Combined | 0.9180 | 0.9327 | 0.6434 | 0.7721 | 0.9514 |
 | **Bernoulli NB (Optimized)** | Combined | 0.7825 | 1.0000 | 0.0189 | 0.0372 | 0.7067 |
 
-**Conclusion**: The **Optimized LinearSVC** achieved the highest F1 Score (**0.9541**), making it the most balanced classifier for the test set. Optimization provided the most significant F1 gain for the Logistic Regression model and the Naive Bayes model. The **Optimized Logistic Regression** demonstrated the best overall discriminative power (ROC-AUC: **0.9949**).
+**Conclusion and Business Trade-offs**: 
+
+The **Optimized LinearSVC** achieved the highest F1 Score (**0.9541**), establishing it as the most balanced classifier for this test set. The F1 Score represents a critical balance between **Precision** (minimizing False Positives – ensuring legitimate emails are not blocked) and **Recall** (minimizing False Negatives – ensuring actual spam is detected).
+
+* **LinearSVC (Optimized)**: Offers the best compromise (Precision 0.9654 / Recall 0.9430).
+* **Logistic Regression (Optimized)**: Demonstrated the best overall discriminative power (ROC-AUC: **0.9949**), which is crucial for setting deployment-time decision thresholds.
+
+Optimization provided the most significant F1 gain for the Logistic Regression model and the Naive Bayes model.
 
 #### Visualizing Performance Differences
 
