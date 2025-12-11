@@ -347,7 +347,13 @@ The final performance evaluation was performed on the test set. The table below 
 
 MLflow's comparison feature allows for quick visualization of metric gains across runs, providing evidence of successful optimization.
 
+The scatter plot below charts the relationship between Test Accuracy (X-axis) and Test F1 Score (Y-axis) for all eight runs.
+
 ![Comparison chart showing F1 Score evolution across different models and runs](assets/comparison_test_accuracy_test_f1_score.png)
+
+**Interpretation of the Scatter Plot**:
+- **Top Cluster (Ideal Models)**: The points clustered in the upper-right corner (F1 Score $\approx 0.94-0.95$ and Accuracy $\approx 0.96-0.98$) represent the Linear SVM and Logistic Regression models, confirming their status as the top-performing algorithms.
+- **Performance Gaps**: The significant vertical distance between the top cluster and the mid-range points (F1 Score $\approx 0.74-0.77$, Naive Bayes) and the lowest point (F1 Score $\approx 0.03$, Bernoulli NB) highlights the clear performance advantage of the SVM and Logistic Regression families for this task.
 
 #### Traceability and Reproducibility
 
