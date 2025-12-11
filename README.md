@@ -347,7 +347,7 @@ The final performance evaluation was performed on the test set. The table below 
 
 MLflow's comparison feature allows for quick visualization of metric gains across runs, providing evidence of successful optimization.
 
-![Comparison chart showing F1 Score evolution across different models and runs](assets/comparison_graph.png)
+![Comparison chart showing F1 Score evolution across different models and runs](assets/comparison_test_accuracy_test_f1_score.png)
 
 #### Traceability and Reproducibility
 
