@@ -156,13 +156,13 @@ spam-main/
 
 ## Installation
 
-From the project root (e.g. after extracting `spam-main/`):
+From the project root:
 
 ```bash
-cd spam-main
+cd spam
 
 # Option 1: Using uv (recommended if available)
-uv sync --extra dev
+uv sync
 
 # Quick technical validation (without full coverage/proof)
 uv run python scripts/run_tests.py --quick
