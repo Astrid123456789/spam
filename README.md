@@ -162,7 +162,7 @@ From the project root:
 cd spam
 
 # Option 1: Using uv (recommended if available)
-uv sync
+uv sync --extra dev
 
 # Quick technical validation (without full coverage/proof)
 uv run python scripts/run_tests.py --quick
