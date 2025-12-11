@@ -2,7 +2,7 @@
 """
 Simple Spam Detection ML Pipeline with Inline MLflow Integration
 
-This pipeline includes MLflow logging directly in the main workflow, adapting 
+This pipeline includes MLflow logging directly in the main workflow, adapting 
 the configuration for text classification tasks.
 """
 
@@ -52,12 +52,18 @@ def run_pipeline(args):
 
     # MLflow Configuration and Start
     if args.mlflow:
-        # Assuming MLFLOW_EXPERIMENT_NAME is available via config import
-        # For simplicity, we hardcode here, but ideally, it comes from config
-        experiment_name = "spam_detection_ml"
+        experiment_name = args.mlflow_experiment
         mlflow.set_experiment(experiment_name)
-        run = mlflow.start_run(run_name=f"main_run_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+        # Utiliser un nom de run plus descriptif
+        run_name = f"{args.model.upper()}_{datetime.now().strftime('%H%M')}" if args.model else f"main_run_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        run = mlflow.start_run(run_name=run_name)
         logger.info(f"MLflow Run ID: {run.info.run_id}")
+        
+        # AJOUT MLFLOW : Enregistrement des arguments de la ligne de commande
+        mlflow.log_param("model_type", args.model if args.model else "comparison")
+        mlflow.log_param("optimization_enabled", args.optimize)
+        mlflow.log_param("data_scenario", "combined") # On assume ici 'combined'
+        mlflow.log_param("log_level", args.log_level)
     
     try:
         # 1. Data Validation
@@ -70,6 +76,7 @@ def run_pipeline(args):
         scenarios = data_processor.load_and_preprocess()
         
         # Format: (X_train, X_test, y_train, y_test) as pd.Series
+        # On utilise le scénario 'combined'
         X_train_txt, X_test_txt, y_train_s, y_test_s = scenarios['combined']
         
         # 3. Feature Engineering (Text Vectorization)
@@ -77,12 +84,17 @@ def run_pipeline(args):
         text_preprocessor = TextPreprocessor()
         
         # Apply feature transformation (e.g., TF-IDF)
-        # Note: fit_transform expects Series/list of text
         X_train = text_preprocessor.fit_transform(X_train_txt)
         X_test = text_preprocessor.transform_messages(X_test_txt)
         
+        # AJOUT MLFLOW : Enregistrement des paramètres du Vectorizer
+        if args.mlflow:
+            vectorizer = text_preprocessor.vectorizer
+            mlflow.log_param("vectorizer_type", type(vectorizer).__name__)
+            mlflow.log_param("vectorizer_max_features", vectorizer.max_features)
+            mlflow.log_param("vocabulary_size", X_train.shape[1])
+        
         # Convert labels to numeric (spam=1, ham=0) if not already
-        # DataProcessor outputs labels as present in CSV
         if y_train_s.dtype == 'object':
             y_train = y_train_s.apply(lambda x: 1 if x == POSITIVE_CLASS_LABEL else 0).values
             y_test = y_test_s.apply(lambda x: 1 if x == POSITIVE_CLASS_LABEL else 0).values
@@ -98,8 +110,6 @@ def run_pipeline(args):
         logger.step("MODEL TRAINING AND EVALUATION", 3, total_steps=4)
         model_trainer = ModelTrainer()
         
-        # Note: 'groups' is usually for time-series/geographic data, kept as placeholder 
-        # but typically None for standard text classification.
         # groups_train = None 
         
         if args.compare:
@@ -138,6 +148,11 @@ def run_pipeline(args):
             model_trainer.best_model = best_model
             model_trainer.best_model_name = args.model
             
+            # AJOUT MLFLOW : Enregistrement des hyperparamètres par défaut pour le modèle
+            if args.mlflow:
+                model_params = model_trainer.best_model.get_params()
+                mlflow.log_params({f"model_param_{k}": v for k, v in model_params.items()})
+
         else:
             logger.error("Please specify --model for training or --compare for model comparison.")
             return
@@ -153,7 +168,6 @@ def run_pipeline(args):
         y_pred = model_trainer.predict(model_trainer.best_model, X_test)
         
         # Calculate classification metrics
-        # Calculate classification metrics
         # Since we converted labels to numeric, positive_label should be 1
         final_metrics = model_trainer.evaluator.calculate_metrics(y_test, y_pred, positive_label=1)
         
@@ -161,10 +175,24 @@ def run_pipeline(args):
         logger.results_summary({"Final Test Metrics": final_metrics})
 
         if args.mlflow:
-            # Log final metrics and model to MLflow
-            mlflow.log_metrics({f"final_test_{k}": v for k, v in final_metrics.items()})
-            mlflow.sklearn.log_model(model_trainer.best_model, "final_model")
+            # CORRECTION MLFLOW : La clé doit être la métrique seule, non préfixée par 'final_test_'
+            # Le préfixe "final_test_" était bon, l'erreur était dans l'implémentation de log_metrics
+            # Utilisez le dictionnaire compréhensif pour garantir le préfixe
+            mlflow.log_metrics({f"test_{k}": v for k, v in final_metrics.items()})
             
+            # CORRECTION MLFLOW : Enregistrement du Vectorizer et du Modèle
+            # On enregistre le pipeline complet si possible, sinon le modèle seul
+            
+            # Enregistrement du modèle (L'objet est souvent le pipeline ou le classifieur final)
+            mlflow.sklearn.log_model(model_trainer.best_model, "final_classifier_model")
+            
+            # Si vous voulez enregistrer le Vectorizer séparément (optionnel)
+            # import joblib
+            # vectorizer_path = "artifacts/vectorizer.joblib"
+            # joblib.dump(text_preprocessor.vectorizer, vectorizer_path)
+            # mlflow.log_artifact(vectorizer_path)
+
+
     except Exception as e:
         logger.error(f"A critical error occurred: {e}")
         # Terminate MLflow session on failure
@@ -184,6 +212,8 @@ def run_pipeline(args):
 
 
 def parse_arguments():
+# Reste du code de cette fonction non modifié, car il était correct
+# ...
     """Parses command-line arguments."""
     parser = argparse.ArgumentParser(description="Spam Detection ML Pipeline.")
 
@@ -232,6 +262,8 @@ def parse_arguments():
 
 
 def main():
+# Reste du code de cette fonction non modifié, car il était correct
+# ...
     """Main entry point."""
     
     try:
@@ -258,11 +290,9 @@ def main():
         # Error message is printed inside run_pipeline, but ensuring exit code is 1
         # In case of unhandled exception outside run_pipeline:
         if get_logger().level > LogLevel.SILENT:
-             print(f"\n❌ Pipeline failed: {e}")
+            print(f"\n❌ Pipeline failed: {e}")
         sys.exit(1)
 
 
 if __name__ == "__main__":
     main()
-
-
