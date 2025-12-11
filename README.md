@@ -322,6 +322,8 @@ The following table summarizes the eight experiments conducted and logged in the
 
 **Visualizing the Experiments**:
 
+The MLflow UI provides a central dashboard for comparing all runs at a glance.
+
 ![A full view of the 8 logged runs in the MLflow UI](assets/all_experiments.png)
 
 #### Aggregated Metrics (Performance Comparison)
