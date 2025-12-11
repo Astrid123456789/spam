@@ -2,7 +2,7 @@
 """
 Simple Spam Detection ML Pipeline with Inline MLflow Integration
 
-This pipeline includes MLflow logging directly in the main workflow, adapting 
+This pipeline includes MLflow logging directly in the main workflow, adapting
 the configuration for text classification tasks.
 """
 
@@ -14,6 +14,9 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import os
+# --- NOUVELLE IMPORTATION ---
+from sklearn.metrics import roc_auc_score
+# --- FIN NOUVELLE IMPORTATION ---
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
@@ -110,7 +113,7 @@ def run_pipeline(args):
         logger.step("MODEL TRAINING AND EVALUATION", 3, total_steps=4)
         model_trainer = ModelTrainer()
         
-        # groups_train = None 
+        # groups_train = None
         
         if args.compare:
             # Model Comparison
@@ -164,26 +167,40 @@ def run_pipeline(args):
              logger.error("No model was trained or selected for final evaluation.")
              return
 
-        # Predictions on the test set
+        # Predictions on the test set (classes 0/1)
         y_pred = model_trainer.predict(model_trainer.best_model, X_test)
         
+        # --- DÉBUT MODIFICATIONS POUR ROC-AUC ---
+        roc_auc = None
+        # Vérification si le modèle supporte predict_proba (nécessaire pour ROC-AUC)
+        if hasattr(model_trainer.best_model, "predict_proba"):
+            # Probabilités pour la classe positive (indice 1)
+            y_pred_proba = model_trainer.best_model.predict_proba(X_test)[:, 1]
+            
+            # Calcul du ROC-AUC
+            roc_auc = roc_auc_score(y_test, y_pred_proba)
+            logger.info(f"ℹ️  ROC-AUC Score: {roc_auc:.4f}")
+            
+        else:
+            logger.warning("⚠️  Model does not support predict_proba. Skipping ROC-AUC calculation.")
+
         # Calculate classification metrics
         # Since we converted labels to numeric, positive_label should be 1
         final_metrics = model_trainer.evaluator.calculate_metrics(y_test, y_pred, positive_label=1)
         
+        # Ajout du ROC-AUC au dictionnaire des métriques finales
+        if roc_auc is not None:
+            final_metrics['roc_auc'] = roc_auc
+        # --- FIN MODIFICATIONS POUR ROC-AUC ---
+
         # Logging final results
         logger.results_summary({"Final Test Metrics": final_metrics})
 
         if args.mlflow:
-            # CORRECTION MLFLOW : La clé doit être la métrique seule, non préfixée par 'final_test_'
-            # Le préfixe "final_test_" était bon, l'erreur était dans l'implémentation de log_metrics
-            # Utilisez le dictionnaire compréhensif pour garantir le préfixe
+            # Enregistrement des métriques (y compris le ROC-AUC)
             mlflow.log_metrics({f"test_{k}": v for k, v in final_metrics.items()})
             
-            # CORRECTION MLFLOW : Enregistrement du Vectorizer et du Modèle
-            # On enregistre le pipeline complet si possible, sinon le modèle seul
-            
-            # Enregistrement du modèle (L'objet est souvent le pipeline ou le classifieur final)
+            # Enregistrement du modèle
             mlflow.sklearn.log_model(model_trainer.best_model, "final_classifier_model")
             
             # Si vous voulez enregistrer le Vectorizer séparément (optionnel)
@@ -212,8 +229,6 @@ def run_pipeline(args):
 
 
 def parse_arguments():
-# Reste du code de cette fonction non modifié, car il était correct
-# ...
     """Parses command-line arguments."""
     parser = argparse.ArgumentParser(description="Spam Detection ML Pipeline.")
 
@@ -262,8 +277,6 @@ def parse_arguments():
 
 
 def main():
-# Reste du code de cette fonction non modifié, car il était correct
-# ...
     """Main entry point."""
     
     try:
