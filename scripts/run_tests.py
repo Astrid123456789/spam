@@ -281,10 +281,10 @@ class TestRunner:
         
         if not self.public_key_path.exists():
             self.print_warning(f"Instructor public key not found: {self.public_key_path}")
-            self.print_step("Proof will be generated without instructor key validation")
-            # We continue even without the key, as it's not strictly needed for student proof generation
+            self.print_step("Contact your instructor for the public key file")
+            return False
         
-        self.print_success("Cryptographic setup verified (or bypassed)")
+        self.print_success("Cryptographic setup verified")
         return True
     
     def check_git_status(self):
@@ -656,12 +656,7 @@ class TestRunner:
             if self.proof_output_path.exists():
                 print(f"✅ Proof file generated: {self.proof_output_path.name}")
                 print(f"📋 Results file: {self.results_output_path.name}")
-                
-                if self.public_key_path.exists():
-                    print(f"🔑 Public key used: {self.public_key_path.name}")
-                else:
-                    print(f"⚠️  No public key used (instructor verification pending)")
-                
+                print(f"🔑 Public key used: {self.public_key_path.name}")
                 print(f"\n📝 Instructions:")
                 print(f"1. Commit and push these files to your repository")
                 print(f"2. Provide your git repository URL to instructor")

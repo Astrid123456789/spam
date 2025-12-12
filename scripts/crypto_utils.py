@@ -42,26 +42,29 @@ class TestResultSigner:
     signatures that can only be verified by the instructor's private key.
     """
     
-    def __init__(self, public_key_path: Path = None):
+    def __init__(self, public_key_path: Path):
         """
-        Initialize the signer with instructor's public key (optional).
+        Initialize the signer with instructor's public key.
         
         Args:
-            public_key_path: Path to the instructor's public key file (optional)
+            public_key_path: Path to the instructor's public key file
+            
+        Raises:
+            CryptoError: If key loading fails
         """
-        self.public_key_path = Path(public_key_path) if public_key_path else None
+        self.public_key_path = Path(public_key_path)
         self.public_key = self._load_public_key()
     
-    def _load_public_key(self) -> Any:
+    def _load_public_key(self) -> rsa.RSAPublicKey:
         """
-        Load RSA public key from PEM file if available.
+        Load RSA public key from PEM file.
         
         Returns:
-            RSA public key object or None
+            RSA public key object
+            
+        Raises:
+            CryptoError: If key loading fails
         """
-        if not self.public_key_path or not self.public_key_path.exists():
-            return None
-
         try:
             with open(self.public_key_path, 'rb') as key_file:
                 public_key = serialization.load_pem_public_key(
@@ -70,14 +73,14 @@ class TestResultSigner:
                 )
             
             if not isinstance(public_key, rsa.RSAPublicKey):
-                print(f"Warning: Key at {self.public_key_path} is not a valid RSA public key")
-                return None
+                raise CryptoError("Key is not a valid RSA public key")
             
             return public_key
             
+        except FileNotFoundError:
+            raise CryptoError(f"Public key file not found: {self.public_key_path}")
         except Exception as e:
-            print(f"Warning: Failed to load public key: {str(e)}")
-            return None
+            raise CryptoError(f"Failed to load public key: {str(e)}")
     
     def _get_git_info(self, repo_path: Path) -> Dict[str, str]:
         """
@@ -391,14 +394,14 @@ class TestResultVerifier:
 
 
 def create_test_proof(test_results: Dict[str, Any], repo_path: Path, 
-                     public_key_path: Path = None) -> Dict[str, Any]:
+                     public_key_path: Path) -> Dict[str, Any]:
     """
     Convenience function to create a test proof.
     
     Args:
         test_results: Results from test execution
         repo_path: Path to the Git repository
-        public_key_path: Path to instructor's public key (optional)
+        public_key_path: Path to instructor's public key
         
     Returns:
         Dictionary containing the test proof
