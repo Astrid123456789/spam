@@ -1,0 +1,59 @@
+{
+  "message": "{\"git_context\":{\"author_email\":\"spokharel95@gmail.com\",\"author_name\":\"gr8sushant\",\"commit_hash\":\"7039706cc2ab9afe292ae1ddc93b2f544c58126f\"},\"test_summary\":{\"execution_time\":2.88,\"passed_tests\":3,\"success_rate\":75.0,\"total_tests\":4},\"timestamp\":\"2025-12-12T11:02:41.439993\",\"version\":\"1.0\"}",
+  "message_hash": "X12DyNvD8A80qJ30uPHSjFa6ZWoXEfslIysiC9/SALU=",
+  "test_results": {
+    "execution_metadata": {
+      "timestamp": "2025-12-12T11:02:41.439398",
+      "execution_time_seconds": 2.88,
+      "runner_version": "Enhanced Test Runner v2.0",
+      "environment": {
+        "python_version": "3.12.2 | packaged by conda-forge | (main, Feb 16 2024, 20:54:21) [Clang 16.0.6 ]",
+        "platform": "macOS-15.6.1-arm64-arm-64bit",
+        "working_directory": "/Users/sushantpokharel/Desktop/Deuxieme Sem/Spam/spam"
+      }
+    },
+    "test_summary": {
+      "total_tests": 4,
+      "passed_tests": 3,
+      "failed_tests": 1,
+      "success_rate": 75.0,
+      "test_modules": [
+        "text_preprocessor",
+        "evaluator",
+        "model_trainer",
+        "data_processor"
+      ]
+    },
+    "detailed_results": {
+      "text_preprocessor": true,
+      "evaluator": true,
+      "model_trainer": true,
+      "data_processor": false
+    },
+    "module_breakdown": {
+      "text_preprocessor": {
+        "passed": true,
+        "status": "PASS"
+      },
+      "evaluator": {
+        "passed": true,
+        "status": "PASS"
+      },
+      "model_trainer": {
+        "passed": true,
+        "status": "PASS"
+      },
+      "data_processor": {
+        "passed": false,
+        "status": "FAIL"
+      }
+    }
+  },
+  "git_info": {
+    "commit_hash": "7039706cc2ab9afe292ae1ddc93b2f544c58126f",
+    "author_name": "gr8sushant",
+    "author_email": "spokharel95@gmail.com"
+  },
+  "timestamp": "2025-12-12T11:02:41.439993",
+  "signature_placeholder": "INSTRUCTOR_SIGNATURE_REQUIRED"
+}
