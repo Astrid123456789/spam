@@ -2,7 +2,12 @@
 
 A machine learning pipeline for **spam detection** on SMS and email messages using text-based features.
 
-*Authors: BENDAHMAN Meryem, FAURIE Juliette, FLICHY Astrid, PHAM Ngoc Thu Uyen, POKHAREL Sushant*
+**Authors**
+* BENDAHMAN Meryem : Model Evaluation, Model Testing
+* FAURIE Juliette : Model Training, Model Testing, Documentation
+* FLICHY Astrid : Model Testing, Documentation
+* PHAM Ngoc Thu Uyen: Data Processing, Model Testing
+* POKHAREL Sushant: Feature Engineering, MLflow Integration
 
 ## Overview
 
