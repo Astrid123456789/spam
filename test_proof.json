@@ -1,0 +1,59 @@
+{
+  "message": "{\"git_context\":{\"author_email\":\"juliette.faurie@imt-atlantique.net\",\"author_name\":\"Juliette Faurie\",\"commit_hash\":\"9e9d8b64a1bd0bf39f433b07ff7d2b32cd4386c3\"},\"test_summary\":{\"execution_time\":36.68,\"passed_tests\":4,\"success_rate\":100.0,\"total_tests\":4},\"timestamp\":\"2025-12-12T11:45:35.434768\",\"version\":\"1.0\"}",
+  "message_hash": "9rSO48bd+CHdf4QwsDC+cgNkvUuaTPv0JrjnbZAaEW8=",
+  "test_results": {
+    "execution_metadata": {
+      "timestamp": "2025-12-12T11:45:35.369901",
+      "execution_time_seconds": 36.68,
+      "runner_version": "Enhanced Test Runner v2.0",
+      "environment": {
+        "python_version": "3.12.11 (main, Sep 18 2025, 19:47:19) [Clang 20.1.4 ]",
+        "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+        "working_directory": "/mnt/c/users/julie/Documents/IMT Atlantique 2A - Data Science/Data Science Toolkit and Applications/spam"
+      }
+    },
+    "test_summary": {
+      "total_tests": 4,
+      "passed_tests": 4,
+      "failed_tests": 0,
+      "success_rate": 100.0,
+      "test_modules": [
+        "data_processor",
+        "evaluator",
+        "model_trainer",
+        "text_preprocessor"
+      ]
+    },
+    "detailed_results": {
+      "data_processor": true,
+      "evaluator": true,
+      "model_trainer": true,
+      "text_preprocessor": true
+    },
+    "module_breakdown": {
+      "data_processor": {
+        "passed": true,
+        "status": "PASS"
+      },
+      "evaluator": {
+        "passed": true,
+        "status": "PASS"
+      },
+      "model_trainer": {
+        "passed": true,
+        "status": "PASS"
+      },
+      "text_preprocessor": {
+        "passed": true,
+        "status": "PASS"
+      }
+    }
+  },
+  "git_info": {
+    "commit_hash": "9e9d8b64a1bd0bf39f433b07ff7d2b32cd4386c3",
+    "author_name": "Juliette Faurie",
+    "author_email": "juliette.faurie@imt-atlantique.net"
+  },
+  "timestamp": "2025-12-12T11:45:35.434768",
+  "signature_placeholder": "INSTRUCTOR_SIGNATURE_REQUIRED"
+}
